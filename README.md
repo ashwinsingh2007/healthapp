@@ -2,33 +2,67 @@
 
 This is an AI-powered medical scribe system that automatically generates SOAP notes from patient-provider conversations.
 
-## Features
+## Technical Stack
 
-- Real-time audio recording of medical consultations
-- Automatic transcription using Deepgram
-- Speaker identification and attribution
-- SOAP note generation using AI
-- Efficient handling of long conversations (30-40 minutes)
+### Frontend
+- Next.js for the web application
+- Tailwind CSS for styling
+- Redux + Redux-Saga for state management
+- Deepgram SDK for live audio streaming and transcription
+
+### Backend
+- NestJS framework
 - MongoDB for data persistence
+- OpenAI API for SOAP note generation
+- File system storage for audio files (temporary solution)
 
-## Prerequisites
+## Current Limitations
 
-- Docker and Docker Compose
-- Deepgram API key
-- OpenAI API key
+1. **Speaker Identification Issue**: 
+   - Deepgram's live audio streaming has a known bug where speaker identification always returns as "0"
+   - This affects the ability to distinguish between doctor and patient in the transcription
+
+## Implementation Flow
+
+1. **Live Recording & Transcription**:
+   - User starts recording through the web interface
+   - Deepgram SDK streams audio in real-time
+   - Transcriptions are sent to backend at regular intervals
+   - Audio is saved in the local filesystem (temporary solution until S3 integration)
+
+2. **Post-Recording Processing**:
+   - When recording stops, backend processes all saved transcriptions
+   - Transcriptions are chunked into 500-word segments
+   - Each chunk is processed in parallel:
+     - Combined with prompt and example
+     - Sent to OpenAI for SOAP note generation
+     - Results are aggregated and returned to frontend
+
+3. **Data Management**:
+   - Currently not storing OpenAI responses in DB for testing purposes
+   - This allows for testing accuracy of the system
+   - Future implementation will include response storage for historical data
 
 ## Setup
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd medical-scribe
+git clone git@github.com:ashwinsingh2007/healthapp.git
+cd healthapp
 ```
 
-2. Create a `.env` file in the root directory with the following variables:
+2. Create environment files:
+
+For backend (`backend/.env`):
 ```
-DEEPGRAM_API_KEY=your_deepgram_api_key
-OPENAI_API_KEY=your_openai_api_key
+MONGODB_URI=mongodb://mongodb:27017/asha
+OPENAI_API_KEY=<your_openai_api_key>
+```
+
+For frontend (`frontend/.env`):
+```
+NEXT_PUBLIC_DEEPGRAM_API_KEY=<your_deepgram_api_key>
+NEXT_PUBLIC_API_URL=http://localhost:4000
 ```
 
 3. Build and run the application:
@@ -40,53 +74,3 @@ The application will be available at:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:4000
 
-## Architecture
-
-### Frontend (Next.js)
-- Real-time audio recording
-- WebSocket connection for live transcription
-- User interface for recording management
-- SOAP note display and editing
-
-### Backend (NestJS)
-- Audio processing and chunking
-- Deepgram integration for transcription
-- OpenAI integration for speaker identification and SOAP note generation
-- MongoDB for data persistence
-
-### Data Flow
-1. Audio recording starts
-2. Audio is chunked and sent to Deepgram
-3. Transcriptions are combined and processed
-4. Speaker identification is performed
-5. SOAP note is generated
-6. All data is stored in MongoDB
-
-## Development
-
-To run the application in development mode:
-
-```bash
-# Frontend
-cd frontend
-npm install
-npm run dev
-
-# Backend
-cd backend
-npm install
-npm run start:dev
-```
-
-## Testing
-
-```bash
-# Frontend tests
-cd frontend
-npm test
-
-# Backend tests
-cd backend
-npm test
-``` 
-4f68d9a90d05e825093c4831126813c9ea54b653
